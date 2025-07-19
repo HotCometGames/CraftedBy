@@ -1,0 +1,107 @@
+import SwiftUI
+import Foundation
+
+
+struct ChatDetailView: View {
+    @ObservedObject var chat: ChatThread
+    @State private var newMessageText = ""
+    
+    var body: some View {
+        VStack {
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(chat.messages) { message in
+                            HStack {
+                                if message.sender == "Me" {
+                                    Spacer()
+                                    Text(message.text)
+                                        .padding()
+                                        .background(Color.green.opacity(0.2))
+                                        .cornerRadius(12)
+                                } else {
+                                    Text(message.text)
+                                        .padding()
+                                        .background(Color.gray.opacity(0.2))
+                                        .cornerRadius(12)
+                                    Spacer()
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                }
+                .onChange(of: chat.messages.count) { _ in
+                    withAnimation {
+                        scrollProxy.scrollTo(chat.messages.last?.id, anchor: .bottom)
+                    }
+                }
+            }
+            
+            Divider()
+            
+            HStack {
+                TextField("Type a message...", text: $newMessageText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(minHeight: 30)
+                
+                Button(action: sendMessage) {
+                    Image(systemName: "paperplane.fill")
+                        .foregroundColor(.green)
+                        .padding(.horizontal)
+                }
+                .disabled(newMessageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 10)
+        }
+        .navigationTitle(chat.creator.name)
+    }
+    
+    func sendMessage() {
+        let trimmed = newMessageText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        let message = Message(sender: "Me", text: trimmed, timestamp: Date())
+        chat.messages.append(message)
+        newMessageText = ""
+    }
+}
+
+
+
+struct MessagesView: View {
+    @EnvironmentObject var chatManager: ChatManager
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(chatManager.chats) { chat in
+                    NavigationLink(destination: ChatDetailView(chat: chat)) {
+                        HStack {
+                            Image(chat.creator.imageName)
+                                .resizable()
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+                            
+                            VStack(alignment: .leading) {
+                                Text(chat.creator.name)
+                                    .font(.headline)
+                                if let lastMessage = chat.messages.last {
+                                    Text(lastMessage.text)
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                        .lineLimit(1)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+            .navigationTitle("Messages")
+        }
+    }
+}
+
+
