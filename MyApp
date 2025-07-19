@@ -1,0 +1,33 @@
+import SwiftUI
+import Foundation
+
+@main
+struct MyApp: App {
+    @State private var selectedTab = 0
+    @StateObject private var chatManager = ChatManager()
+    
+    var body: some Scene {
+        WindowGroup {
+            TabView(selection: $selectedTab) {
+                NavigationStack {
+                    Home(selectedTab: $selectedTab)
+                        .environmentObject(chatManager)
+                }
+                .tabItem {
+                    Label("Home", systemImage: "house")
+                }
+                .tag(0)
+                
+                NavigationStack {
+                    MessagesView()
+                        .environmentObject(chatManager)
+                }
+                .tabItem {
+                    Label("Messages", systemImage: "bubble.left.and.bubble.right")
+                }
+                .tag(1)
+            }
+        }
+    }
+}
+
