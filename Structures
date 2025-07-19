@@ -1,0 +1,79 @@
+import SwiftUI
+import Foundation
+
+class ChatManager: ObservableObject {
+    @Published var chats: [ChatThread] = sampleChatObjects
+    
+    func ensureChatExists(for creator: Creator) {
+        if !chats.contains(where: { $0.creator.id == creator.id }) {
+            let newThread = ChatThread(creator: creator, messages: [])
+            chats.append(newThread)
+        }
+    }
+    
+    func chat(for creator: Creator) -> ChatThread {
+        if let existing = chats.first(where: { $0.creator.id == creator.id }) {
+            return existing
+        } else {
+            let newThread = ChatThread(creator: creator, messages: [])
+            chats.append(newThread)
+            return newThread
+        }
+    }
+}
+
+
+struct Message: Identifiable {
+    let id = UUID()
+    let sender: String // "Me" or "Them"
+    let text: String
+    let timestamp: Date
+}
+
+class ChatThread: Identifiable, ObservableObject {
+    let id = UUID()
+    let creator: Creator
+    @Published var messages: [Message]
+    
+    init(creator: Creator, messages: [Message]) {
+        self.creator = creator
+        self.messages = messages
+    }
+}
+
+
+struct Creator: Identifiable {
+    let id = UUID()
+    let name: String
+    let description: String
+    let fullDescription: String
+    let imageName: String
+}
+
+
+var sampleChatObjects: [ChatThread] = [
+    ChatThread(creator: sampleCreators[0], messages: [
+        Message(sender: "Me", text: "Hey John! I love your art!", timestamp: Date()),
+        Message(sender: "Them", text: "Thank you! Want a commission?", timestamp: Date())
+    ]),
+    ChatThread(creator: sampleCreators[3], messages: [
+        Message(sender: "Me", text: "Hi Ava! Can you edit a clip for me?", timestamp: Date()),
+        Message(sender: "Them", text: "Of course! Send it over.", timestamp: Date())
+    ]),
+    ChatThread(creator: sampleCreators[1], messages: [
+        Message(sender: "Me", text: "Hi Rachel! Can you edit a podcast for me?", timestamp: Date()),
+        Message(sender: "Them", text: "Sounds good, send over the audio file so I can begin!.", timestamp: Date())
+    ]),
+    ChatThread(creator: sampleCreators[2], messages: [
+        Message(sender: "Me", text: "Hey Luis, how much do you charge for a small fictional narative?", timestamp: Date()),
+        Message(sender: "Them", text: "Hello! I charge $35 for a 2 page narrative, or if you need more we can get into specifics", timestamp: Date())
+    ])
+]
+
+let sampleCreators = [
+    Creator(name: "John D.", description: "Digital Artist", fullDescription:"John is a 23-year-old digital illustrator who specializes in fantasy and comic-style art. He loves drawing dragons, superheroes, and imaginative landscapes. His art is bold, expressive, and filled with bright colors and energy. John has Down syndrome and has been creating art since he was a child. He communicates best through images and visual storytelling. He uses Procreate on his iPad and sometimes Adobe Illustrator, and he’s sold dozens of commissions on social media.", imageName: "Image Asset 2"),
+    Creator(name: "Rachel T.", description: "Audio Editor", fullDescription: "Rachel is a 26-year-old audio wizard who edits podcasts, voiceovers, and music mixes with precision and care. She was introduced to audio editing in a high school media class and instantly fell in love with the rhythm and detail of sound work. Rachel has Down syndrome and communicates clearly and confidently. She’s incredibly attentive to pitch, tone, and timing. She uses Audacity and GarageBand, and she’s helped produce over 30 episodes for small podcasters and nonprofits.", imageName: "Image Asset"),
+    Creator(name: "Luis M.", description: "Creative Writer", fullDescription: "Luis is a 20-year-old storyteller who writes uplifting short stories, poems, and blog posts. He writes about friendship, adventure, and what it means to be kind. His voice is warm, honest, and always full of hope. Luis has Down syndrome and writes every day in a custom word processor that helps him express himself freely. He has a small blog with a loyal following and has had several of his poems published in local literary magazines.", imageName: "Image Asset 3"),
+    Creator(name: "Ava S.", description: "Video Editor", fullDescription: "Ava is a 25-year-old video editor who specializes in heartfelt storytelling and highlight reels. She edits family videos, sports clips, and short promotional pieces with creative flair and emotional timing. Ava has Down syndrome and discovered video editing through a film summer camp. She uses iMovie and Final Cut Pro, and she loves syncing visuals with music to create moments that move people. Clients praise her sense of timing and her eye for detail.", imageName: "Image Asset 1")
+]
+
